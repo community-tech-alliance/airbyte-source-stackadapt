@@ -1,0 +1,406 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "id",
+    "advertiser_id",
+    "line_item_id",
+    "name",
+    "budget",
+    "bid_type",
+    "bid_amount_total"
+  ],
+  "properties": {
+    "id": {
+      "type": ["integer", "null"],
+      "description": "The ID of the campaign."
+    },
+    "advertiser_id": {
+      "type": ["integer", "null"],
+      "description": "The ID of the campaign's advertiser."
+    },
+    "line_item_id": {
+      "type": ["integer", "null"],
+      "description": "The ID of the campaign's line item. This value cannot be modified after it has been set."
+    },
+    "name": {
+      "type": ["string", "null"],
+      "description": "The name of the campaign."
+    },
+    "goal": {
+      "type": ["string", "null"],
+      "description": "The goal of the campaign. Note: use \"engagement\" for awareness or engagement campaigns"
+    },
+    "campaign_type": {
+      "type": ["string", "null"],
+      "description": "(Deprecated) Legacy Campaign Type. Please use the `channel` parameter."
+    },
+    "channel": {
+      "type": ["string", "null"],
+      "description": "The campaign's channel. Currently, only native is supported via API creation"
+    },
+    "budget": {
+      "type": ["number", "null"],
+      "description": "The budget of the campaign."
+    },
+    "weekday_enabled": {
+      "type": ["boolean", "null"],
+      "description": "Enable day parting in campaigns to select days of the week. It will be converted from boolean, true and false to integers, 1 and 0 respectively"
+    },
+    "weekday_percents": {
+      "type": "array",
+      "items": {
+        "type": ["boolean", "null"]
+      },
+      "description": "An array of booleans to describe day parting enabled per day of the week starting from Sunday and end at Saturday.\n            Example: The value [ true, false, false, true, true, false, true] means the budget can be spent for the following days with values \"true\". The array is parsed as Sunday: true, Monday: false, Tuesday: false, Wednesday: true, Thursday: true, Friday: false, Saturday: true. This value is only used if budget is not null and weekday_enabled is set to true."
+    },
+    "weekday_budgets": {
+      "type": "array",
+      "items": {
+        "type": ["number", "null"]
+      },
+      "description": "An array of floats to describe budgets per day of the week starting from Sunday and end at Saturday.\n            Example: The value [ 400.0, 100.0, 0.0, 200.0, 400.0, 200.0, 0.0 ] means the specified budget can be spent for the following days Sunday: 400.0, Monday: 100.0, Tuesday: 0.0, Wednesday: 200.0, Thursday: 400.0, Friday: 200.0, Saturday: 0.0. This value is only used if budget is set to null and weekday_enabled is set to true."
+    },
+    "day_part": {
+      "type": ["null", "object"],
+      "properties": {
+        "enabled": {
+          "type": ["boolean", "null"],
+          "description": "The hourly parting is enabled."
+        },
+        "timezone": {
+          "type": ["string", "null"],
+          "description": "Timezone of ad account"
+        },
+        "start_hour": {
+          "type": ["integer", "null"],
+          "description": "The campaign will start spending at this hour. The start_hour will be set to 0 if not defined or defined outside of range 0 to 23."
+        },
+        "end_hour": {
+          "type": ["integer", "null"],
+          "description": "The campaign will finish spending at this hour. The end_hour will be set to 0 if not defined or defined outside of range 0 to 23"
+        }
+      },
+      "description": "Enable hourly parting to set hours during the day that campaign can spend"
+    },
+    "bid_type": {
+      "type": ["string", "null"],
+      "description": "Type of bid model: cpm (Cost Per Thousand Impressions), cpc (Cost Per Click), cpe (Cost Per Engagement) bid model."
+    },
+    "bid_amount_total": {
+      "type": ["number", "null"],
+      "description": "The bid amount of the campaign."
+    },
+    "optimize_type": {
+      "type": ["string", "null"],
+      "description": "The type of optimization used for the campaign: ctr (CTR floor), cpc (CPC goal)."
+    },
+    "optimize_value": {
+      "type": ["number", "null"],
+      "description": "The value of the optimization. Example: The value is 0.2 for a $0.2 CPC goal, or a 0.2% CTR floor."
+    },
+    "daily_cap": {
+      "type": ["number", "null"],
+      "description": "The maximum budget to be spent in a single day. This value is only used if pace_evenly is NULL or false."
+    },
+    "pace_evenly": {
+      "type": ["boolean", "null"],
+      "description": "Whether or not to pace the campaign budget evenly over the course of the campaign. This value is only used if a valid end_date is specified."
+    },
+    "state": {
+      "type": ["string", "null"],
+      "description": "The state of the campaign."
+    },
+    "start_date": {
+      "type": ["string", "null"],
+      "description": "The date when the campaign will begin."
+    },
+    "end_date": {
+      "type": ["string", "null"],
+      "description": "The date when the campaign will end."
+    },
+    "smart_targeting": {
+      "type": ["boolean", "null"],
+      "description": "(Recommended) Smart Targeting helps you target relevant sites based on your audience targeting selection and historical performance. Overrides category_options."
+    },
+    "category_options": {
+      "type": "array",
+      "items": {
+        "type": ["string", "null"]
+      },
+      "description": "The list of IAB categories to be included in the campaign. \u003Ca class=\"campaign-link\" target=\"_blank\" href=\"https://docs.google.com/document/d/1oZEWp_b9ccLsPNbTJf-w5ENHSSHiAjVQVcfjUh7LBsg/edit?usp=sharing#bookmark=id.wwmc2j4w9weo\"\u003EClick Here\u003C/a\u003E for full list of IB categories. Leave empty to choose all."
+    },
+    "custom_segments_list": {
+      "type": "array",
+      "items": {
+        "type": ["string", "null"]
+      },
+      "description": "The list of Custom Segments (and/or StackAdapt Segments) identifiers to attach to a campaign"
+    },
+    "third_party_segments": {
+      "type": "array",
+      "items": {
+        "type": ["string", "null"]
+      },
+      "description": "The list of Third-Party Segment identifiers to attach to a campaign"
+    },
+    "country_options": {
+      "type": "array",
+      "items": {
+        "type": ["string", "null"]
+      },
+      "description": "The list of ISO 3166-1 alpha-2 country codes to be included in the campaign."
+    },
+    "us_state_options": {
+      "type": "array",
+      "items": {
+        "type": ["string", "null"]
+      },
+      "description": "The list of ISO 3166-2 US state codes to be included in the campaign."
+    },
+    "canada_province_options": {
+      "type": "array",
+      "items": {
+        "type": ["string", "null"]
+      },
+      "description": "The list of ISO 3166-2 Canadian province codes to be included in the campaign."
+    },
+    "uk_county_options": {
+      "type": "array",
+      "items": {
+        "type": ["string", "null"]
+      },
+      "description": "The list of ISO 3166-2 UK county codes to be included in the campaign."
+    },
+    "other_state_options": {
+      "type": "array",
+      "items": {
+        "type": ["string", "null"]
+      },
+      "description": "The list of states (aside from those in US, UK, or Canada) to be included in the campaign. Pairs in format [country code]:[state code]."
+    },
+    "city_options": {
+      "type": ["string", "null"],
+      "description": "The list of city ID objects to be included in the campaign. For more information \u003Ca class=\"campaign-link\" target=\"_blank\" href=\"https://docs.google.com/document/d/1oZEWp_b9ccLsPNbTJf-w5ENHSSHiAjVQVcfjUh7LBsg/edit?usp=sharing#bookmark=id.19kxqs63mxbn\"\u003EClick Here\u003C/a\u003E."
+    },
+    "domain_action": {
+      "type": ["string", "null"],
+      "description": "Action to be taken on the \"domain_options\" list."
+    },
+    "domain_options": {
+      "type": "array",
+      "items": {
+        "type": ["string", "null"]
+      },
+      "description": "The list of domains or subdomains to be included or excluded in the campaign. \"domain_action\" must also be set. Example: [\"ford.com\", \"www.american express.com\"]"
+    },
+    "device_type_options": {
+      "type": "array",
+      "items": {
+        "type": ["string", "null"]
+      },
+      "description": "The list of device types to be included in the campaign."
+    },
+    "supply_type_options": {
+      "type": "array",
+      "items": {
+        "type": ["string", "null"]
+      },
+      "description": "The list of mobile supply types to be included in the campaign."
+    },
+    "supply_source_options": {
+      "type": "array",
+      "items": {
+        "type": ["string", "null"]
+      },
+      "description": "List of supply source id's. See the supply_sources endpoint for a list of supply_source_options"
+    },
+    "freq_cap_limit": {
+      "type": ["integer", "null"],
+      "description": "The user frequency cap value, which is the maximum amount of impressions that a unique user can see."
+    },
+    "freq_cap_time": {
+      "type": ["integer", "null"],
+      "description": "The length of time in milliseconds when the user frequency cap counter restarts."
+    },
+    "language_options": {
+      "type": "array",
+      "items": {
+        "type": ["string", "null"]
+      },
+      "description": "A list of language(s) that are targeted. The campaign will only target sites or users whose language is included in the list."
+    },
+    "use_dma": {
+      "type": ["boolean", "null"],
+      "description": "Enable campaign to target city by Designated Market Area (DMA)."
+    },
+    "allow_iframe_engagement": {
+      "type": ["boolean", "null"],
+      "description": "Allow engagement tracking by placing add within an iframe"
+    },
+    "all_native_ads": {
+      "type": "array",
+      "items": {
+        "type": [
+          "object"
+        ],
+        "properties": {
+          "id": {
+            "type": ["integer", "null"],
+            "description": "The ID of the native ad."
+          },
+          "click_url": {
+            "type": ["string", "null"],
+            "description": "The click URL of the native ad. Not used for App Install Campaigns, where the click url is on the campaign object."
+          },
+          "input_data": {
+            "type": ["null", "object"],
+            "properties": {
+              "heading": {
+                "type": ["string", "null"],
+                "description": "The heading of the ad."
+              },
+              "tagline": {
+                "type": ["string", "null"],
+                "description": "The tagline of the ad."
+              },
+              "width": {
+                "type": ["integer", "null"],
+                "description": "The width of the container that the ad will be displayed in. Check the UI for valid options."
+              },
+              "height": {
+                "type": ["integer", "null"],
+                "description": "The height of the container that the ad will be displayed in. Check the UI for valid options."
+              },
+              "js_code": {
+                "type": ["string", "null"],
+                "description": "The HTML tag that will display your creative. Prepend quotes inside with backslash, so the JSON can be parsed. Alternatively, use single quotes inside."
+              },
+              "img_url": {
+                "type": ["string", "null"],
+                "description": "If your HTML/JS tag is an iframe, this URL represents the background image for it. You may leave it blank if you are not using iframe."
+              },
+              "is_expandable": {
+                "type": ["string", "null"],
+                "description": "Indicates whether your ad enlarges on the screen when hovering over it for some time."
+              }
+            }
+          },
+          "audit_status": {
+            "type": ["string", "null"],
+            "description": "The audit status of the audit."
+          },
+          "name": {
+            "type": ["string", "null"],
+            "description": "The name of the native ad"
+          },
+          "state": {
+            "type": ["string", "null"],
+            "description": "The state of the campaign."
+          },
+          "imp_tracker_urls": {
+            "type": "array",
+            "items": {
+              "type": ["string", "null"]
+            },
+            "description": "List of URLs for impression tracking."
+          },
+          "vast_trackers": {
+            "type": "array",
+            "items": {
+              "type": [
+                "object"
+              ],
+              "properties": {
+                "event_type": {
+                  "type": ["string", "null"],
+                  "description": "The event to track"
+                },
+                "url": {
+                  "type": ["string", "null"],
+                  "description": "URL to track this event"
+                }
+              }
+            },
+            "description": "List of VAST trackers; only for video/CTV ads."
+          },
+          "api_frameworks": {
+            "type": "array",
+            "items": {
+              "type": ["string", "null"]
+            },
+            "description": "List of supported api frameworks."
+          },
+          "brandname": {
+            "type": ["string", "null"],
+            "description": "Brand name associated with the creative."
+          },
+          "cta_text": {
+            "type": ["string", "null"],
+            "description": "Call-to-Action Text. Only used on some exchanges. This field is optional."
+          },
+          "creatives": {
+            "type": "array",
+            "items": {
+              "type": [
+                "object"
+              ],
+              "properties": {
+                "id": {
+                  "type": ["integer", "null"],
+                  "description": "The ID of the image."
+                },
+                "file_name": {
+                  "type": ["string", "null"],
+                  "description": "The file name of the image."
+                },
+                "url": {
+                  "type": ["string", "null"],
+                  "description": "The s3 URL of where the image is being stored."
+                },
+                "width": {
+                  "type": ["integer", "null"],
+                  "description": "The width of the image."
+                },
+                "height": {
+                  "type": ["integer", "null"],
+                  "description": "The height of the image."
+                }
+              }
+            }
+          },
+          "icon": {
+            "type": ["null", "object"],
+            "properties": {
+              "id": {
+                "type": ["integer", "null"],
+                "description": "The ID of the image."
+              },
+              "file_name": {
+                "type": ["string", "null"],
+                "description": "The file name of the image."
+              },
+              "url": {
+                "type": ["string", "null"],
+                "description": "The s3 URL of where the image is being stored."
+              },
+              "width": {
+                "type": ["integer", "null"],
+                "description": "The width of the image."
+              },
+              "height": {
+                "type": ["integer", "null"],
+                "description": "The height of the image."
+              }
+            }
+          },
+          "channel": {
+            "type": ["string", "null"],
+            "description": "Campaign type"
+          }
+        }
+      },
+      "description": "Native ad model"
+    }
+  }
+}

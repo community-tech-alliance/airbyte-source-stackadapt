@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "id",
+    "name"
+  ],
+  "properties": {
+    "id": {
+      "type": ["integer", "null"],
+      "description": "The ID of the line item."
+    },
+    "name": {
+      "type": ["string", "null"],
+      "description": "The name of the line item."
+    },
+    "state": {
+      "type": ["string", "null"],
+      "description": "The state of the line item."
+    },
+    "daily_cap": {
+      "type": ["number", "null"],
+      "description": "The maximum budget (revenue type) to be spent in a single day. This value is only used if pace_evenly is NULL or false."
+    },
+    "pace_evenly": {
+      "type": ["boolean", "null"],
+      "description": "Whether or not to pace the campaign budget evenly over the course of the line item (Campaign Group). This value is only used if a valid end_date is specified."
+    },
+    "black_list_options": {
+      "type": ["string", "null"],
+      "description": "The list of domains or subdomains to be excluded in the campaign. \"domain_action\" must also be set. Example: \"www.american-express.com, www.google.com\""
+    },
+    "revenue_type": {
+      "type": ["string", "null"],
+      "description": "With budget type set to revenue, choose a type of revenue tracking."
+    },
+    "revenue_value": {
+      "type": ["number", "null"],
+      "description": "The value of the revenue type. For example, 10 with a revenue type 'margin' would have revenue computed with a 10% margin."
+    },
+    "purchase_order_number": {
+      "type": ["string", "null"],
+      "description": "PO numbers can be used to align line_items with your own accounting systems"
+    },
+    "all_campaign_ids": {
+      "type": "array",
+      "items": {
+        "type": ["integer"]
+      }
+    },
+    "advertiser_id": {
+      "type": ["integer", "null"],
+      "description": "The ID of the line item's advertiser."
+    },
+    "start_date": {
+      "type": ["string", "null"],
+      "description": "The timestamp in UTC when the line item will begin."
+    },
+    "end_date": {
+      "type": ["string", "null"],
+      "description": "The timestamp in UTC when the line item will end."
+    },
+    "budget": {
+      "type": ["number", "null"],
+      "description": "The budget of the line item."
+    },
+    "budget_type": {
+      "type": ["string", "null"],
+      "description": "Type of tracking model: media (Tracked by cost), click (Tracked by clicks, budget field should be # of clicks), imp (Tracked by impressions, budget field should be # of impressions) bid model."
+    }
+  }
+}
