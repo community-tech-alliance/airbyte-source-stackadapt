@@ -15,7 +15,8 @@ from airbyte_cdk.sources.streams.http import HttpStream
 # Basic full refresh stream
 class StackadaptStream(HttpStream, ABC):
     """
-    TODO: Add docs
+    Base StackAdapt stream class. All StackAdapt streams will inherit from this base class.
+    Includes logic for authenticating to the stackadapt API, and pagination strategy.
     """
 
     url_base = "https://api.stackadapt.com/service/v2/"
@@ -110,7 +111,10 @@ class StackadaptStatStream(StackadaptStream):
         self, stream_state: Mapping[str, Any], stream_slice: Mapping[str, any] = None, next_page_token: Mapping[str, Any] = None
     ) -> MutableMapping[str, Any]:
         """
-        TODO: Add Docs
+        The query params for the 'stat' endpoint are used to request stats for different resources/types. For more
+        information check out the Stackadapt docs: https://docs.stackadapt.com/#!/stats/getStats
+
+        Currently, only 'buyer_account' stats that are grouped by campaign, line item, or native ad are supported.
         """
         stats_query_params = {
             "resource": self.ACCOUNT_RESOURCE_TYPE,
@@ -134,7 +138,11 @@ class StackadaptStatStream(StackadaptStream):
 
     def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
         """
-        TODO: Add Docs.
+        Depending on the stat 'type', the response objects will be under a different key.
+        Time based stat types will have results under the 'daily_stats' key and
+        total stat type will have results in the 'individual_total_stats' key.
+
+        :param response: the response object from the most recent API call
         :return an iterable containing each record in the response
         """
 
@@ -146,7 +154,8 @@ class StackadaptStatStream(StackadaptStream):
 
 class Campaigns(StackadaptStream):
     """
-    TODO: Add Doc to this class
+    Returns all campaigns from the system that the user has access to.
+    https://docs.stackadapt.com/#!/campaign/findCampaigns
     """
 
     # Constants and Parameters
@@ -160,16 +169,13 @@ class Campaigns(StackadaptStream):
         stream_slice: Mapping[str, Any] = None,
         next_page_token: Mapping[str, Any] = None
     ) -> str:
-        """
-        TODO: Override this method to define the path this stream corresponds to. E.g. if the url is https://example-api.com/v1/customers then this
-        should return "customers". Required.
-        """
         return "campaigns"
 
 
 class LineItems(StackadaptStream):
     """
-    TODO: Add Doc to this class
+    Returns all line items (Campaign Groups) from the system that the user has access to.
+    https://docs.stackadapt.com/#!/line_item/findLineItems
     """
 
     primary_key = "id"
@@ -187,7 +193,8 @@ class LineItems(StackadaptStream):
 
 class Advertisers(StackadaptStream):
     """
-    TODO: Add Doc to this class
+    Returns all advertisers from the system that the user has access to.
+    https://docs.stackadapt.com/#!/advertiser/findAdvertisers
     """
 
     primary_key = "id"
@@ -205,7 +212,8 @@ class Advertisers(StackadaptStream):
 
 class ConversionTrackers(StackadaptStream):
     """
-    TODO: Add Doc to this class
+    Returns all conversion trackers from the system that the user has access to.
+    https://docs.stackadapt.com/#!/conversion_trackers/findConversionTrackers
     """
 
     primary_key = "id"
@@ -223,7 +231,8 @@ class ConversionTrackers(StackadaptStream):
 
 class NativeAds(StackadaptStream):
     """
-    TODO: Add Doc to this class
+    Returns all native ads from the system that the user has access to.
+    https://docs.stackadapt.com/#!/native_ad/findNativeAds
     """
 
     primary_key = "id"
@@ -241,7 +250,8 @@ class NativeAds(StackadaptStream):
 
 class AccountCampaignsStats(StackadaptStatStream):
     """
-    TODO: Add Doc to this class
+    Returns stats on all the campaigns a user has access to.
+    Stats can be either 'total' stats per campaign, or 'daily' stats for each campaign.
     """
     # Constants
     primary_key = "campaign_id"
@@ -250,7 +260,10 @@ class AccountCampaignsStats(StackadaptStatStream):
 
 class AccountLineItemsStats(StackadaptStatStream):
     """
-    TODO: Add Doc to this class
+    Returns stats on all the line items a user has access to.
+    Stats can be either 'total' stats per line item, or 'daily' stats for each line item.
+
+    Note: the response schema for this stream does not contain the line_item_id, it only contains name
     """
     # Constants
     primary_key = "line_item"
@@ -259,7 +272,8 @@ class AccountLineItemsStats(StackadaptStatStream):
 
 class AccountNativeAdsStats(StackadaptStatStream):
     """
-    TODO: Add Doc to this class
+    Returns stats on all the native ads a user has access to.
+    Stats can be either 'total' stats per native ad, or 'daily' stats for each native ad.
     """
     # Constants
     primary_key = "native_ad_id"
