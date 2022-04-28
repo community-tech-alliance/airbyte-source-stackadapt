@@ -131,3 +131,6 @@ dmypy.json
 # Other
 .DS_Store
 secrets/
+
+# PyCharm
+*.idea
