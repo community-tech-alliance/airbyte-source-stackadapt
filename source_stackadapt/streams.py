@@ -4,9 +4,9 @@
 
 
 from abc import ABC
-from datetime import datetime
+from datetime import datetime, timedelta
 from math import ceil
-from typing import Any, Iterable, List, Mapping, MutableMapping, Optional, Tuple
+from typing import Any, Iterable, List, Mapping, MutableMapping, Optional
 
 import requests
 from airbyte_cdk.sources.streams.http import HttpStream
@@ -90,7 +90,7 @@ class StackadaptStatStream(StackadaptStream):
     GROUP_BY_RESOURCE = ""                   # Resource to group by. One of: campaign, line_item, native_ad
     TIME_BASED_STATS_KEY = "daily_stats"
     TOTAL_STATS_KEY = "individual_total_stats"
-    STATS_END_DATE = datetime.utcnow().strftime("%Y-%m-%d")
+    STATS_END_DATE = datetime.utcnow().date() - timedelta(days=1)  # Only gets stats up until previous day. (Current day stats may be incomplete depending on when sync is ran)
 
     def __init__(self, stat_type: str, start_date: str, **kwargs):
         super().__init__(**kwargs)
@@ -248,7 +248,125 @@ class NativeAds(StackadaptStream):
         return "native_ads"
 
 
-class AccountCampaignsStats(StackadaptStatStream):
+# Basic incremental stream
+class IncrementalStackadaptStatStream(StackadaptStream):
+    """
+    Base Incremental Stackadapt stream
+    """
+    # Constants
+    DEFAULT_DATE_FORMAT = "%Y-%m-%d"
+    DEFAULT_TIME_ZONE = "UTC"
+    TIME_BASED_STATS_KEY = "daily_stats"
+    ACCOUNT_RESOURCE_TYPE = "buyer_account"  # Default to grab stats for entire account
+    GROUP_BY_RESOURCE = ""                   # Resource to group by. One of: campaign, line_item, native_ad
+    STAT_TYPE = "daily"                      # For now only daily stats is available
+    STATS_END_DATE = datetime.utcnow().date() - timedelta(days=1)  # Only gets stats up until previous day. (Current day stats may be incomplete depending on when sync is ran)
+    
+    cursor_field = "date"
+
+    def __init__(self, start_date: str, **kwargs):
+        super().__init__(**kwargs)
+        self.start_date = datetime.strptime(start_date, self.DEFAULT_DATE_FORMAT)
+        self._cursor_value = None
+
+    def get_updated_state(self, current_stream_state: MutableMapping[str, Any], latest_record: Mapping[str, Any]) -> Mapping[str, Any]:
+        """
+        Compares the date of the current record with the date saved on the stream state. 
+        If the date on the record is greater than the state, then update state. (Note: this seems to be called after each stream slice)
+        """
+        # Get date from the stream state if it exists. If it doesnt exists, that means this stream hasnt saved a state yet and 
+        # we should use the input 'start_date' for stream state
+        current_stream_state = current_stream_state or {}
+        current_state_date = self.start_date
+        if current_stream_state.get(self.cursor_field):
+            current_state_date = datetime.strptime(current_stream_state[self.cursor_field], self.DEFAULT_DATE_FORMAT)
+
+        # Compare the date on the current record and if it is greater than the date on the current stream state,
+        # update the stream state date with current record date
+        current_stream_state[self.cursor_field] = max(
+            datetime.strptime(latest_record[self.cursor_field], self.DEFAULT_DATE_FORMAT),
+            current_state_date
+        ).strftime(self.DEFAULT_DATE_FORMAT)
+
+        return current_stream_state
+
+    def stream_slices(self, sync_mode, cursor_field: List[str] = None, stream_state: Mapping[str, Any] = None) -> Iterable[Optional[Mapping[str, Any]]]:
+        """
+        Returns a slice for the date range that data should be pulled. This currently will pull the date from the stream state
+        to use as the start date for the slice. End date for the slice will be 'STATS_END_DATE': the day before the sync is ran.
+        The thinking behind this is that we should pull daily stats for the current date since they may be incomplete depending on when sync is running.
+
+        This also means that each sync run will result in a single slice and API request. We can modify this to a different strategy,
+        but this started running into issues when trying to do daily slices (1 API request per day) for initial load.
+        """
+        slices = []
+
+        # Check to see if there is an existing stream state we should pick up from
+        # if not just pull data from 'start_date'
+        slice_start_date = self.start_date
+        if stream_state.get(self.cursor_field):
+            slice_start_date = (
+                datetime.strptime(stream_state[self.cursor_field], self.DEFAULT_DATE_FORMAT) + timedelta(days=1)
+            )
+        
+        # To reduce number of requests we are making, only create a single slice with data we have not yet pulled.
+        # Basically, pull data from the date in stream state or from 'start_date' if no stream state (hasnt ran yet)
+        if slice_start_date.date() < self.STATS_END_DATE:
+            slices.append({
+                "start_date": datetime.strftime(slice_start_date, self.DEFAULT_DATE_FORMAT),
+                "end_date": datetime.strftime(self.STATS_END_DATE, self.DEFAULT_DATE_FORMAT)
+            })
+        return slices
+
+    def next_page_token(self, response: requests.Response) -> Optional[Mapping[str, Any]]:
+        """
+        The 'stats' endpoint does not have any pagination.
+        """
+        return None
+    
+    def request_params(
+        self, stream_state: Mapping[str, Any], stream_slice: Mapping[str, any] = None, next_page_token: Mapping[str, Any] = None
+    ) -> MutableMapping[str, Any]:
+        """
+        The query params for the 'stat' endpoint are used to request stats for different resources/types. For more
+        information check out the Stackadapt docs: https://docs.stackadapt.com/#!/stats/getStats
+
+        Currently, only 'buyer_account' stats that are grouped by campaign, line item, or native ad are supported.
+        """
+        stats_query_params = {
+            "resource": self.ACCOUNT_RESOURCE_TYPE,
+            "type": self.STAT_TYPE,
+            "group_by_resource": self.GROUP_BY_RESOURCE,
+            "timezone": self.DEFAULT_TIME_ZONE,
+            "start_date": stream_slice["start_date"],
+            "end_date": stream_slice["end_date"],
+        }
+
+        return stats_query_params
+    
+    def path(
+        self,
+        stream_state: Mapping[str, Any] = None,
+        stream_slice: Mapping[str, Any] = None,
+        next_page_token: Mapping[str, Any] = None
+    ) -> str:
+        return "stats"
+    
+    def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
+        """
+        Parses the response object and yields records if there are returned records from source.
+        Note: The API will return 'daily_stat': None if no data was found for given time range.
+
+        :param response: the response object from the most recent API call
+        :return an iterable containing each record in the response
+        """
+        stats_response = response.json()
+
+        # Yield from response only if there is available data
+        daily_stats = stats_response.get(self.TIME_BASED_STATS_KEY)
+        yield from daily_stats if daily_stats else []
+
+class AccountCampaignsStats(IncrementalStackadaptStatStream):
     """
     Returns stats on all the campaigns a user has access to.
     Stats can be either 'total' stats per campaign, or 'daily' stats for each campaign.
@@ -257,8 +375,7 @@ class AccountCampaignsStats(StackadaptStatStream):
     primary_key = "campaign_id"
     GROUP_BY_RESOURCE = "campaign"
 
-
-class AccountLineItemsStats(StackadaptStatStream):
+class AccountLineItemsStats(IncrementalStackadaptStatStream):
     """
     Returns stats on all the line items a user has access to.
     Stats can be either 'total' stats per line item, or 'daily' stats for each line item.
@@ -270,7 +387,7 @@ class AccountLineItemsStats(StackadaptStatStream):
     GROUP_BY_RESOURCE = "line_item"
 
 
-class AccountNativeAdsStats(StackadaptStatStream):
+class AccountNativeAdsStats(IncrementalStackadaptStatStream):
     """
     Returns stats on all the native ads a user has access to.
     Stats can be either 'total' stats per native ad, or 'daily' stats for each native ad.
@@ -278,73 +395,3 @@ class AccountNativeAdsStats(StackadaptStatStream):
     # Constants
     primary_key = "native_ad_id"
     GROUP_BY_RESOURCE = "native_ad"
-
-
-# Basic incremental stream
-# TODO: Make Stats Incremental Streams, Remove these example streams
-class IncrementalStackadaptStream(StackadaptStream, ABC):
-    """
-    TODO fill in details of this class to implement functionality related to incremental syncs for your connector.
-         if you do not need to implement incremental sync for any streams, remove this class.
-    """
-
-    # TODO: Fill in to checkpoint stream reads after N records. This prevents re-reading of data if the stream fails for any reason.
-    state_checkpoint_interval = None
-
-    @property
-    def cursor_field(self) -> str:
-        """
-        TODO
-        Override to return the cursor field used by this stream e.g: an API entity might always use created_at as the cursor field. This is
-        usually id or date based. This field's presence tells the framework this in an incremental stream. Required for incremental.
-
-        :return str: The name of the cursor field.
-        """
-        return []
-
-    def get_updated_state(self, current_stream_state: MutableMapping[str, Any], latest_record: Mapping[str, Any]) -> Mapping[str, Any]:
-        """
-        Override to determine the latest state after reading the latest record. This typically compared the cursor_field from the latest record and
-        the current state and picks the 'most' recent cursor. This is how a stream's state is determined. Required for incremental.
-        """
-        return {}
-
-class Employees(IncrementalStackadaptStream):
-    """
-    TODO: Change class name to match the table/data source this stream corresponds to.
-    """
-
-    # TODO: Fill in the cursor_field. Required.
-    cursor_field = "start_date"
-
-    # TODO: Fill in the primary key. Required. This is usually a unique field in the stream, like an ID or a timestamp.
-    primary_key = "employee_id"
-
-    def path(self, **kwargs) -> str:
-        """
-        TODO: Override this method to define the path this stream corresponds to. E.g. if the url is https://example-api.com/v1/employees then this should
-        return "single". Required.
-        """
-        return "employees"
-
-    def stream_slices(self, stream_state: Mapping[str, Any] = None, **kwargs) -> Iterable[Optional[Mapping[str, any]]]:
-        """
-        TODO: Optionally override this method to define this stream's slices. If slicing is not needed, delete this method.
-
-        Slices control when state is saved. Specifically, state is saved after a slice has been fully read.
-        This is useful if the API offers reads by groups or filters, and can be paired with the state object to make reads efficient. See the "concepts"
-        section of the docs for more information.
-
-        The function is called before reading any records in a stream. It returns an Iterable of dicts, each containing the
-        necessary data to craft a request for a slice. The stream state is usually referenced to determine what slices need to be created.
-        This means that data in a slice is usually closely related to a stream's cursor_field and stream_state.
-
-        An HTTP request is made for each returned slice. The same slice can be accessed in the path, request_params and request_header functions to help
-        craft that specific request.
-
-        For example, if https://example-api.com/v1/employees offers a date query params that returns data for that particular day, one way to implement
-        this would be to consult the stream state object for the last synced date, then return a slice containing each date from the last synced date
-        till now. The request_params function would then grab the date from the stream_slice and make it part of the request by injecting it into
-        the date query param.
-        """
-        raise NotImplementedError("Implement stream slices or delete this method!")

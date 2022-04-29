@@ -14,17 +14,11 @@
         "airbyte_secret": "true",
         "order": 1
       },
-      "stat_type": {
-        "title": "Stats Type",
-        "description": "The type of stats to retrieve. Currently only time-based types are allowed: 'total', 'daily', and 'hourly'.",
-        "type": "string",
-        "order": 2
-      },
       "start_date": {
         "title": "Start Date",
-        "description": "The start date in the format of 'yyyy-mm-dd'. The start date is required if you are pulling daily or hourly stats.",
+        "description": "The start date in the format of 'yyyy-mm-dd'. The start date is required if you are pulling daily stats.",
         "type": "string",
-        "order": 3
+        "order": 2
       }
     }
   }

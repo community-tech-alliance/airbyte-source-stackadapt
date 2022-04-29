@@ -57,17 +57,14 @@ class SourceStackadapt(AbstractSource):
             NativeAds(api_key=config["api_key"]),
             AccountCampaignsStats(
                 api_key=config["api_key"],
-                stat_type=config["stat_type"],
                 start_date=config.get("start_date"),
             ),
             AccountLineItemsStats(
                 api_key=config["api_key"],
-                stat_type=config["stat_type"],
                 start_date=config.get("start_date"),
             ),
             AccountNativeAdsStats(
                 api_key=config["api_key"],
-                stat_type=config["stat_type"],
                 start_date=config.get("start_date"),
             )
         ]
