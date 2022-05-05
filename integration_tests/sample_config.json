@@ -1,0 +1,5 @@
+{
+  "api_key": "Your StackAdapt API key",
+  "stat_type": "One of: daily, total",
+  "start_date": "Only required if using 'daily' stat_type."
+}

@@ -1,0 +1,209 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "atos": {
+      "type": ["number", "null"],
+      "description": "The average time on site"
+    },
+    "atos_units": {
+      "type": ["number", "null"],
+      "description": "The average time on site"
+    },
+    "campaign": {
+      "type": ["string", "null"]
+    },
+    "campaign_custom_fields": {
+      "type": ["string", "null"]
+    },
+    "campaign_id": {
+      "type": ["integer", "null"]
+    },
+    "campaign_type": {
+      "type": ["string", "null"]
+    },
+    "channel": {
+      "type": ["string", "null"]
+    },
+    "click": {
+      "type": ["integer", "null"],
+      "description": "Clicks"
+    },
+    "conv": {
+      "type": ["integer", "null"],
+      "description": "Conversions"
+    },
+    "conv_click": {
+      "type": ["integer", "null"]
+    },
+    "conv_click_time_avg": {
+      "type": ["number", "null"]
+    },
+    "conv_imp_derived": {
+      "type": ["integer", "null"],
+      "description": "Conversions attributed from impressions"
+    },
+    "conv_imp_time_avg": {
+      "type": ["number", "null"]
+    },
+    "conv_ip": {
+      "type": ["integer", "null"]
+    },
+    "conv_rev": {
+      "type": ["number", "null"],
+      "description": "Conversion revenue"
+    },
+    "cost": {
+      "type": ["number", "null"],
+      "description": "Media cost"
+    },
+    "ctr": {
+      "type": ["number", "null"],
+      "description": "Click-through rate"
+    },
+    "cvr": {
+      "type": ["number", "null"],
+      "description": "Conversion rate"
+    },
+    "date": {
+      "type": ["string", "null"],
+      "description": "Date"
+    },
+    "ecpa": {
+      "type": ["number", "null"],
+      "description": "Effective cost per action"
+    },
+    "ecpc": {
+      "type": ["number", "null"],
+      "description": "Effective cost per click"
+    },
+    "ecpe": {
+      "type": ["number", "null"],
+      "description": "Effective cost per engagement"
+    },
+    "ecpm": {
+      "type": ["number", "null"],
+      "description": "Effective cost per mille"
+    },
+    "ecpcl": {
+      "type": ["number", "null"]
+    },
+    "ecpv": {
+      "type": ["number", "null"],
+      "description": "Effective cost per view"
+    },
+    "end_date": {
+      "type": ["string", "null"]
+    },
+    "engage_rate": {
+      "type": ["number", "null"]
+    },
+    "imp": {
+      "type": ["integer", "null"],
+      "description": "Impressions"
+    },
+    "line_item": {
+      "type": ["string", "null"]
+    },
+    "line_item_id": {
+      "type": ["integer", "null"]
+    },
+    "ltr": {
+      "type": ["number", "null"]
+    },
+    "page_start": {
+      "type": ["integer", "null"]
+    },
+    "page_time": {
+      "type": ["integer", "null"],
+      "description": "Total time"
+    },
+    "page_time_15s": {
+      "type": ["integer", "null"],
+      "description": "Engagements"
+    },
+    "page_time_units": {
+      "type": ["integer", "null"]
+    },
+    "profit": {
+      "type": ["number", "null"]
+    },
+    "rcpc": {
+      "type": ["number", "null"]
+    },
+    "rcpcl": {
+      "type": ["number", "null"]
+    },
+    "rcpe": {
+      "type": ["number", "null"]
+    },
+    "rcpm": {
+      "type": ["number", "null"]
+    },
+    "revenue": {
+      "type": ["number", "null"]
+    },
+    "roas": {
+      "type": ["number", "null"],
+      "description": "Return on ad spend"
+    },
+    "s_conv": {
+      "type": ["integer", "null"],
+      "description": "Secondary conversions"
+    },
+    "start_date": {
+      "type": ["string", "null"]
+    },
+    "sub_advertiser": {
+      "type": ["string", "null"]
+    },
+    "sub_advertiser_id": {
+      "type": ["integer", "null"]
+    },
+    "unique_conv": {
+      "type": ["integer", "null"],
+      "description": "Unique conversions"
+    },
+    "tp_cpm_cost": {
+      "type": ["number", "null"],
+      "description": "Third-party CPM cost"
+    },
+    "tp_cpc_cost": {
+      "type": ["number", "null"],
+      "description": "Third-party CPC cost"
+    },
+    "uniq_conv": {
+      "type": ["integer", "null"]
+    },
+    "unique_imp": {
+      "type": ["integer", "null"],
+      "description": "Unique impressions"
+    },
+    "unique_imp_inverse_rate": {
+      "type": ["number", "null"],
+      "description": "Frequency"
+    },
+    "vcomp_0": {
+      "type": ["number", "null"]
+    },
+    "vcomp_25": {
+      "type": ["number", "null"]
+    },
+    "vcomp_50": {
+      "type": ["number", "null"]
+    },
+    "vcomp_75": {
+      "type": ["number", "null"]
+    },
+    "vcomp_95": {
+      "type": ["number", "null"]
+    },
+    "vcomp_rate": {
+      "type": ["number", "null"]
+    },
+    "view_percent": {
+      "type": ["number", "null"],
+      "description": "Viewability"
+    }
+  }
+}

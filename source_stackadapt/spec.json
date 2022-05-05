@@ -1,0 +1,25 @@
+{
+  "documentationUrl": "https://docsurl.com",
+  "connectionSpecification": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Stackadapt Spec",
+    "type": "object",
+    "required": ["api_key"],
+    "additionalProperties": false,
+    "properties": {
+      "api_key": {
+        "title": "StackAdapt API Key",
+        "description": "API Key used to interact with the StackAdapt API",
+        "type": "string",
+        "airbyte_secret": "true",
+        "order": 1
+      },
+      "start_date": {
+        "title": "Start Date",
+        "description": "The start date in the format of 'yyyy-mm-dd'. The start date is required if you are pulling daily stats.",
+        "type": "string",
+        "order": 2
+      }
+    }
+  }
+}
