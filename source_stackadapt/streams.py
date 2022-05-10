@@ -300,6 +300,7 @@ class IncrementalStackadaptStatStream(StackadaptStream):
         but this started running into issues when trying to do daily slices (1 API request per day) for initial load.
         """
         slices = []
+        stream_state = stream_state or {}
 
         # Check to see if there is an existing stream state we should pick up from
         # if not just pull data from 'start_date'
