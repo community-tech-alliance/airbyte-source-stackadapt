@@ -21,6 +21,13 @@ class StackadaptStream(HttpStream, ABC):
 
     url_base = "https://api.stackadapt.com/service/v2/"
 
+    @property
+    def total_results_count_field(self) -> str:
+        """
+        Property for storing the name of the field in the API response that contains
+        the total number of results.
+        """
+
     def __init__(self, api_key: str, **kwargs):
         super().__init__(**kwargs)
         self.api_key = api_key
@@ -44,8 +51,12 @@ class StackadaptStream(HttpStream, ABC):
         response_body = response.json()
         
         # Determine if there are any more pages left
-        current_page = response_body["page"]
-        total_objects = response_body[self.TOTAL_RESULTS_COUNT_FIELD]
+        current_page = response_body.get("page", 1)
+        current_page = current_page if current_page else 1
+        
+        total_objects = response_body.get(self.total_results_count_field, 0)
+        total_objects = total_objects if total_objects else 0
+
         total_pages = ceil(total_objects/self.page_size)
         
         if current_page < total_pages:
@@ -161,7 +172,7 @@ class Campaigns(StackadaptStream):
     # Constants and Parameters
     primary_key = "id"
     page_size = 30
-    TOTAL_RESULTS_COUNT_FIELD = "total_campaigns"
+    total_results_count_field = "total_campaigns"
 
     def path(
         self,
@@ -180,7 +191,7 @@ class LineItems(StackadaptStream):
 
     primary_key = "id"
     page_size = 30
-    TOTAL_RESULTS_COUNT_FIELD = "total_line_items"
+    total_results_count_field = "total_line_items"
 
     def path(
         self,
@@ -199,7 +210,7 @@ class Advertisers(StackadaptStream):
 
     primary_key = "id"
     page_size = 30
-    TOTAL_RESULTS_COUNT_FIELD = "total_advertisers"
+    total_results_count_field = "total_advertisers"
 
     def path(
         self,
@@ -218,7 +229,7 @@ class ConversionTrackers(StackadaptStream):
 
     primary_key = "id"
     page_size = 30
-    TOTAL_RESULTS_COUNT_FIELD = "total_conversion_trackers"
+    total_results_count_field = "total_conversion_trackers"
 
     def path(
         self,
@@ -237,7 +248,7 @@ class NativeAds(StackadaptStream):
 
     primary_key = "id"
     page_size = 60
-    TOTAL_RESULTS_COUNT_FIELD = "total_native_ads"
+    total_results_count_field = "total_native_ads"
 
     def path(
         self,
