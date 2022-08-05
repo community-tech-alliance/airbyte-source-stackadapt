@@ -10,7 +10,9 @@ from typing import Any, Iterable, List, Mapping, MutableMapping, Optional
 
 import requests
 from airbyte_cdk.sources.streams.http import HttpStream
+from airbyte_cdk.logger import AirbyteLogger
 
+logger = AirbyteLogger()
 
 # Basic full refresh stream
 class StackadaptStream(HttpStream, ABC):
@@ -323,11 +325,12 @@ class IncrementalStackadaptStatStream(StackadaptStream):
         
         # To reduce number of requests we are making, only create a single slice with data we have not yet pulled.
         # Basically, pull data from the date in stream state or from 'start_date' if no stream state (hasnt ran yet)
-        if slice_start_date.date() < self.STATS_END_DATE:
+        if slice_start_date.date() <= self.STATS_END_DATE:
             slices.append({
                 "start_date": datetime.strftime(slice_start_date, self.DEFAULT_DATE_FORMAT),
                 "end_date": datetime.strftime(self.STATS_END_DATE, self.DEFAULT_DATE_FORMAT)
             })
+        logger.info(f"Request Stream Slices: {slices}")
         return slices
 
     def next_page_token(self, response: requests.Response) -> Optional[Mapping[str, Any]]:
@@ -353,6 +356,7 @@ class IncrementalStackadaptStatStream(StackadaptStream):
             "start_date": stream_slice["start_date"],
             "end_date": stream_slice["end_date"],
         }
+        logger.info(f"Query Params: {stats_query_params}")
 
         return stats_query_params
     
@@ -376,6 +380,7 @@ class IncrementalStackadaptStatStream(StackadaptStream):
 
         # Yield from response only if there is available data
         daily_stats = stats_response.get(self.TIME_BASED_STATS_KEY)
+        logger.info(f"Retrieved {len(daily_stats)} {self.GROUP_BY_RESOURCE} stat record(s)")
         yield from daily_stats if daily_stats else []
 
 class AccountCampaignsStats(IncrementalStackadaptStatStream):
