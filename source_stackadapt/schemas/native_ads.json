@@ -30,25 +30,109 @@
           "type": ["string", "null"],
           "description": "The tagline of the ad."
         },
-        "width": {
-          "type": ["integer", "null"],
-          "description": "The width of the container that the ad will be displayed in. Check the UI for valid options."
-        },
-        "height": {
-          "type": ["integer", "null"],
-          "description": "The height of the container that the ad will be displayed in. Check the UI for valid options."
-        },
-        "js_code": {
+        "vast_xml": {
           "type": ["string", "null"],
-          "description": "The HTML tag that will display your creative. Prepend quotes inside with backslash, so the JSON can be parsed. Alternatively, use single quotes inside."
+          "description": "VAST information in XML format."
         },
-        "img_url": {
+        "landing_url": {
           "type": ["string", "null"],
-          "description": "If your HTML/JS tag is an iframe, this URL represents the background image for it. You may leave it blank if you are not using iframe."
+          "description": "URL to redirect after interaction."
         },
-        "is_expandable": {
-          "type": ["string", "null"],
-          "description": "Indicates whether your ad enlarges on the screen when hovering over it for some time."
+        "display_js_creative": {
+          "type": ["array", "null"],
+          "items": {
+            "type": ["object", "null"],
+            "properties": {
+              "js_code": {
+                "type": ["string", "null"],
+                "description": "JS code for the ad."
+              },
+              "width": {
+                "type": ["integer", "null"],
+                "description": "The width of the container that the ad will be displayed in. Check the UI for valid options."
+              },
+              "height": {
+                "type": ["integer", "null"],
+                "description": "The height of the container that the ad will be displayed in. Check the UI for valid options."
+              },
+              "img_url": {
+                "type": ["string", "null"],
+                "description": "URL for the image."
+              },
+              "is_expandable": {
+                "type": ["boolean", "null"],
+                "description": "Indicates whether your ad enlarges on the screen when hovering over it for some time."
+              },
+              "js_code_macro": {
+                "type": ["string", "null"],
+                "description": "Macro code in JS."
+              }
+            }
+          }
+        },
+        "video_creatives": {
+          "type": ["array", "null"],
+          "items": {
+            "type": ["object", "null"],
+            "properties": {
+              "s3_url": {
+                "type": ["string", "null"],
+                "description": "The S3 URL of the video/audio creative."
+              },
+              "width": {
+                "type": ["integer", "null"],
+                "description": "The width of the video/audio creative."
+              },
+              "height": {
+                "type": ["integer", "null"],
+                "description": "The height of the video/audio creative."
+              },
+              "file_type": {
+                "type": ["string", "null"],
+                "description": "Video/Audio file type."
+              },
+              "duration": {
+                "type": ["number", "null"],
+                "description": "Duration of the video/audio creative."
+              },
+              "bitrate": {
+                "type": ["integer", "null"],
+                "description": "Bitrate of the video/audio creative."
+              }
+            }
+          }
+        },
+        "audio_creatives": {
+          "type": ["array", "null"],
+          "items": {
+            "type": ["object", "null"],
+            "properties": {
+              "s3_url": {
+                "type": ["string", "null"],
+                "description": "The S3 URL of the video/audio creative."
+              },
+              "width": {
+                "type": ["integer", "null"],
+                "description": "The width of the video/audio creative."
+              },
+              "height": {
+                "type": ["integer", "null"],
+                "description": "The height of the video/audio creative."
+              },
+              "file_type": {
+                "type": ["string", "null"],
+                "description": "Video/Audio file type."
+              },
+              "duration": {
+                "type": ["number", "null"],
+                "description": "Duration of the video/audio creative."
+              },
+              "bitrate": {
+                "type": ["integer", "null"],
+                "description": "Bitrate of the video/audio creative."
+              }
+            }
+          }
         }
       }
     },
@@ -161,8 +245,16 @@
       }
     },
     "channel": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "Campaign type"
+    },
+    "created_at": {
+      "type": ["string", "null"],
+      "description": "The date when the campaign was created."
+    },
+    "updated_at": {
+        "type": ["string", "null"],
+        "description": "The date when the campaign was last updated."
     }
   }
 }

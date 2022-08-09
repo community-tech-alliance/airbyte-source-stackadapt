@@ -39,6 +39,10 @@
     "conv_click_time_avg": {
       "type": ["number", "null"]
     },
+    "conv_cookie": {
+      "type": ["integer", "null"],
+      "description": "Conversion cookie."
+    },
     "conv_imp_derived": {
       "type": ["integer", "null"],
       "description": "Conversions attributed from impressions"
@@ -48,10 +52,6 @@
     },
     "conv_ip": {
       "type": ["integer", "null"]
-    },
-    "conv_rev": {
-      "type": ["number", "null"],
-      "description": "Conversion revenue"
     },
     "cost": {
       "type": ["number", "null"],
@@ -94,9 +94,6 @@
     },
     "end_date": {
       "type": ["string", "null"]
-    },
-    "engage_rate": {
-      "type": ["number", "null"]
     },
     "imp": {
       "type": ["integer", "null"],
@@ -160,10 +157,6 @@
     "sub_advertiser_id": {
       "type": ["integer", "null"]
     },
-    "unique_conv": {
-      "type": ["integer", "null"],
-      "description": "Unique conversions"
-    },
     "tp_cpm_cost": {
       "type": ["number", "null"],
       "description": "Third-party CPM cost"
@@ -172,8 +165,9 @@
       "type": ["number", "null"],
       "description": "Third-party CPC cost"
     },
-    "uniq_conv": {
-      "type": ["integer", "null"]
+    "unique_conv": {
+      "type": ["integer", "null"],
+      "description": "Unique conversions"
     },
     "unique_imp": {
       "type": ["integer", "null"],

@@ -63,10 +63,6 @@
     "budget": {
       "type": ["number", "null"],
       "description": "The budget of the line item."
-    },
-    "budget_type": {
-      "type": ["string", "null"],
-      "description": "Type of tracking model: media (Tracked by cost), click (Tracked by clicks, budget field should be # of clicks), imp (Tracked by impressions, budget field should be # of impressions) bid model."
     }
   }
 }

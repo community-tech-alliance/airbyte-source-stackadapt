@@ -17,12 +17,6 @@
       "type": ["string", "null"],
       "description": "The description of the advertiser"
     },
-    "external_access": {
-      "type": ["string", "null"]
-    },
-    "external_access_code": {
-      "type": ["string", "null"]
-    },
     "all_line_item_ids": {
       "type": "array",
       "description": "Ids of all attached line_items",

@@ -268,7 +268,6 @@ class IncrementalStackadaptStatStream(StackadaptStream):
     """
     # Constants
     DEFAULT_DATE_FORMAT = "%Y-%m-%d"
-    DEFAULT_TIME_ZONE = "UTC"
     TIME_BASED_STATS_KEY = "daily_stats"
     ACCOUNT_RESOURCE_TYPE = "buyer_account"  # Default to grab stats for entire account
     GROUP_BY_RESOURCE = ""                   # Resource to group by. One of: campaign, line_item, native_ad
@@ -352,7 +351,6 @@ class IncrementalStackadaptStatStream(StackadaptStream):
             "resource": self.ACCOUNT_RESOURCE_TYPE,
             "type": self.STAT_TYPE,
             "group_by_resource": self.GROUP_BY_RESOURCE,
-            "timezone": self.DEFAULT_TIME_ZONE,
             "start_date": stream_slice["start_date"],
             "end_date": stream_slice["end_date"],
         }

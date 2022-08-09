@@ -75,6 +75,10 @@
       "type": ["number", "null"],
       "description": "Conversion rate"
     },
+    "start_date": {
+      "type": ["string", "null"],
+      "description": "The date when the campaign will begin."
+    },
     "end_date": {
       "type": ["string", "null"]
     },
@@ -147,6 +151,26 @@
     "page_time_units": {
       "type": ["integer", "null"]
     },
+    "domain": {
+      "type": ["string", "null"],
+      "description": "Domain name."
+    },
+    "full_domain": {
+        "type": ["string", "null"],
+        "description": "Full domain name."
+    },
+    "ios_id": {
+        "type": ["integer", "null"],
+        "description": "iOS ID."
+    },
+    "is_android": {
+        "type": ["boolean", "null"],
+        "description": "If the device was an android."
+    },
+    "is_ios": {
+        "type": ["boolean", "null"],
+        "description": "If the device was an ios."
+    },
     "profit": {
       "type": ["number", "null"]
     },
@@ -196,9 +220,6 @@
     },
     "uniq_conv": {
       "type": ["integer", "null"]
-    },
-    "uniq_ecpa": {
-      "type": ["number", "null"]
     },
     "unique_imp": {
       "type": ["integer", "null"],
