@@ -208,7 +208,7 @@ class DeliveryStatStream(StackadaptStream):
     @property
     def resource_type(self):
         """
-        Override to change the top level resource type for delivery stats
+        Override to change the top level resource type for delivery stats.
         """
         return "advertiser"
     
@@ -235,7 +235,13 @@ class DeliveryStatStream(StackadaptStream):
     @property
     def date_range_type(self):
         """
-        Override to specify the 
+        Override to specify the date range type stats should be returned in. This can either be 
+        'all_time' - returns stats for given resource that are available for all time
+        'custom' - Used to specify that you will pass in a custom date range stats should be returned
+                   for. This requires 'start_date' and 'end_date params' to be passed in. 
+        
+        NOTE: All stats streams will use the 'custom' date_range_type since they are incremental streams
+              that will pull data daily. 
         """
         return "all_time"
 
