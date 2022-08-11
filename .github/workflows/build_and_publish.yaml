@@ -1,5 +1,4 @@
 name: build_and_publish_image
-
 on:
   push:
     branches:
