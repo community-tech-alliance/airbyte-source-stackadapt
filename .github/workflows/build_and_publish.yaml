@@ -9,7 +9,7 @@ on:
   pull_request:
 
 jobs:
-  publish-source-twitter-image:
+  publish-source-stackadapt-image:
     runs-on: ubuntu-latest
 
     steps:
