@@ -18,7 +18,8 @@ jobs:
       id: meta
       uses: docker/metadata-action@v4
       with:
-        images: ghcr.io/community-tech-alliance/source-stackadapt
+        images: |
+          ghcr.io/community-tech-alliance/source-stackadapt
         tags: |
           type=ref,event=branch
           type=ref,event=pr
