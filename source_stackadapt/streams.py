@@ -378,7 +378,6 @@ class IncrementalStackadaptStatStream(StackadaptStream):
 
         # Yield from response only if there is available data
         daily_stats = stats_response.get(self.TIME_BASED_STATS_KEY)
-        logger.info(f"Retrieved {len(daily_stats)} {self.GROUP_BY_RESOURCE} stat record(s)")
         yield from daily_stats if daily_stats else []
 
 class AccountCampaignsStats(IncrementalStackadaptStatStream):
