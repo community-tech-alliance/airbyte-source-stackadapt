@@ -136,6 +136,7 @@ class Advertisers(StackadaptStream):
     primary_key = "id"
     page_size = 30
     total_results_count_field = "total_advertisers"
+    # Use cache so that Stats streams can use cached stream data instead of making another API call
     use_cache = True
 
     def path(
@@ -346,7 +347,9 @@ class DeliveryStatStream(StackadaptStream):
 class IncrementalDeliveryStatStream(DeliveryStatStream, IncrementalMixin):
     """
     Base Incremental Stream for the StackAdapt `delivery` endpoint. 
-    TODO: Add more docs here
+    This stream incrementally loads stat by saving the latest 'date' seen
+    in a record to state. It will then grab that date from state and only 
+    request records newer than that date.
     """
 
     cursor_field = "date"
