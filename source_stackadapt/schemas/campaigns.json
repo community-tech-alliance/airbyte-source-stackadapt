@@ -116,7 +116,7 @@
       "description": "The date when the campaign will end."
     },
     "smart_targeting": {
-      "type": ["string", "null"],
+      "type": ["boolean", "null"],
       "description": "(Recommended) Smart Targeting helps you target relevant sites based on your audience targeting selection and historical performance. Overrides category_options."
     },
     "category_options": {
@@ -242,11 +242,11 @@
         ],
         "properties": {
           "id": {
-            "type": "integer",
+            "type": ["integer", "null"],
             "description": "The ID of the native ad."
           },
           "click_url": {
-            "type": "string",
+            "type": ["string", "null"],
             "description": "The click URL of the native ad. Not used for App Install Campaigns, where the click url is on the campaign object."
           },
           "input_data": {
@@ -278,11 +278,11 @@
                       "description": "JS code for the ad."
                     },
                     "width": {
-                      "type": ["integer", "null"],
+                      "type": ["string", "null"],
                       "description": "The width of the container that the ad will be displayed in. Check the UI for valid options."
                     },
                     "height": {
-                      "type": ["integer", "null"],
+                      "type": ["string", "null"],
                       "description": "The height of the container that the ad will be displayed in. Check the UI for valid options."
                     },
                     "img_url": {
@@ -310,11 +310,11 @@
                       "description": "The S3 URL of the video/audio creative."
                     },
                     "width": {
-                      "type": ["integer", "null"],
+                      "type": ["string", "null"],
                       "description": "The width of the video/audio creative."
                     },
                     "height": {
-                      "type": ["integer", "null"],
+                      "type": ["string", "null"],
                       "description": "The height of the video/audio creative."
                     },
                     "file_type": {
@@ -342,11 +342,11 @@
                       "description": "The S3 URL of the video/audio creative."
                     },
                     "width": {
-                      "type": ["integer", "null"],
+                      "type": ["string", "null"],
                       "description": "The width of the video/audio creative."
                     },
                     "height": {
-                      "type": ["integer", "null"],
+                      "type": ["string", "null"],
                       "description": "The height of the video/audio creative."
                     },
                     "file_type": {
@@ -367,21 +367,21 @@
             }
           },
           "audit_status": {
-            "type": "string",
+            "type": ["string", "null"],
             "description": "The audit status of the audit."
           },
           "name": {
-            "type": "string",
+            "type": ["string", "null"],
             "description": "The name of the native ad"
           },
           "state": {
-            "type": "string",
+            "type": ["string", "null"],
             "description": "The state of the campaign."
           },
           "imp_tracker_urls": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "description": "List of URLs for impression tracking."
           },
@@ -407,16 +407,16 @@
           "api_frameworks": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "description": "List of supported api frameworks."
           },
           "brandname": {
-            "type": "string",
+            "type": ["string", "null"],
             "description": "Brand name associated with the creative."
           },
           "cta_text": {
-            "type": "string",
+            "type": ["string", "null"],
             "description": "Call-to-Action Text. Only used on some exchanges. This field is optional."
           },
           "creatives": {
@@ -533,32 +533,32 @@
         "type": ["object", "null"],
         "properties": {
           "id": {
-              "type": ["integer", "null"],
-              "description": "The ID of the conversion_tracker."
+            "type": ["integer","null"],
+            "description": "The ID of the conversion_tracker."
           },
           "name": {
-              "type": ["string", "null"],
-              "description": "The name of the conversion_tracker."
+            "type": ["string", "null"],
+            "description": "The name of the conversion_tracker."
           },
           "description": {
-              "type": ["string", "null"],
-              "description": "Some description of the conversion_tracker."
+            "type": ["string", "null"],
+            "description": "Some description of the conversion_tracker."
           },
           "user_id": {
-              "type": ["string", "null"],
-              "description": "User who owns the conversion_tracker."
+            "type": ["integer", "null"],
+            "description": "User who owns the conversion_tracker."
           },
           "conv_type": {
-              "type": ["string", "null"],
-              "description": "Specifies whether the conversion is matched by an impression or a click."
+            "type": ["string", "null"],
+            "description": "Specifies whether the conversion is matched by an impression or a click."
           },
           "post_time": {
-              "type": ["integer", "null"],
-              "description": "Time till tracker expires for each user. Max: 2592000000 (30 days)"
+            "type": ["integer", "null"],
+            "description": "Time till tracker expires for each user. Max: 2592000000 (30 days)"
           },
           "count_type": {
-              "type": ["string", "null"],
-              "description": "Specifies whether the conversion can be counted multiple times, or only once, by the same user."
+            "type": ["string", "null"],
+            "description": "Specifies whether the conversion can be counted multiple times, or only once, by the same user."
           }
         }
       }

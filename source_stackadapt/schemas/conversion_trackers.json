@@ -9,31 +9,31 @@
   ],
   "properties": {
     "id": {
-      "type": "integer",
+      "type": ["integer","null"],
       "description": "The ID of the conversion_tracker."
     },
     "name": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "The name of the conversion_tracker."
     },
     "description": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "Some description of the conversion_tracker."
     },
     "user_id": {
-      "type": "string",
+      "type": ["integer", "null"],
       "description": "User who owns the conversion_tracker."
     },
     "conv_type": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "Specifies whether the conversion is matched by an impression or a click."
     },
     "post_time": {
-      "type": "integer",
+      "type": ["integer", "null"],
       "description": "Time till tracker expires for each user. Max: 2592000000 (30 days)"
     },
     "count_type": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "Specifies whether the conversion can be counted multiple times, or only once, by the same user."
     }
   }
