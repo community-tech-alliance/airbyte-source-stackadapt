@@ -60,7 +60,7 @@
                 "description": "URL for the image."
               },
               "is_expandable": {
-                "type": ["boolean", "null"],
+                "type": ["string", "null"],
                 "description": "Indicates whether your ad enlarges on the screen when hovering over it for some time."
               },
               "js_code_macro": {

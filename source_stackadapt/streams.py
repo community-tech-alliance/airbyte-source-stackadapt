@@ -9,6 +9,8 @@ from math import ceil
 from typing import Any, Iterable, List, Mapping, MutableMapping, Optional
 
 import requests
+from airbyte_cdk.models import SyncMode
+from airbyte_cdk.sources.streams.core import IncrementalMixin
 from airbyte_cdk.sources.streams.http import HttpStream
 from airbyte_cdk.logger import AirbyteLogger
 
@@ -38,8 +40,7 @@ class StackadaptStream(HttpStream, ABC):
         self, stream_state: Mapping[str, Any], stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
     ) -> Mapping[str, Any]:
         return {
-            "X-Authorization": self.api_key,
-            "Content-Type": "application/json"
+            "X-Authorization": self.api_key
         }
 
     def next_page_token(self, response: requests.Response) -> Optional[Mapping[str, Any]]:
@@ -85,84 +86,6 @@ class StackadaptStream(HttpStream, ABC):
 
         response_json = response.json()
         yield from response_json.get("data", [])
-
-
-class StackadaptStatStream(StackadaptStream):
-    """
-    Base Stream for streams that use the 'stats' StackAdapt endpoint. This endpoint behaves different than other GET endpoints
-    and has a seperate class for unique logic. The 'stats' endpoint works by taking in a number of query parameters to retrieve
-    statistics. The response object of the endpoint varies by the given parameters. For more information please refer to the 
-    StackAdapt Docs - https://docs.stackadapt.com/#!/stats/getStats
-
-    Note: Currently the only supported 'stats' streams set the resource to 'buyer_account' to get stats for all resources the 
-    account has access to. The streams are created by using the 'group_by_resource' field to get account wide stats for specific
-    resources (campaigns, line items, and native ads).
-    """
-    # Constants
-    ACCOUNT_RESOURCE_TYPE = "buyer_account"  # Default to grab stats for entire account
-    GROUP_BY_RESOURCE = ""                   # Resource to group by. One of: campaign, line_item, native_ad
-    TIME_BASED_STATS_KEY = "daily_stats"
-    TOTAL_STATS_KEY = "individual_total_stats"
-    STATS_END_DATE = datetime.utcnow().date() - timedelta(days=1)  # Only gets stats up until previous day. (Current day stats may be incomplete depending on when sync is ran)
-
-    def __init__(self, stat_type: str, start_date: str, **kwargs):
-        super().__init__(**kwargs)
-        self.stat_type = stat_type
-        self.start_date = start_date
-
-    def next_page_token(self, response: requests.Response) -> Optional[Mapping[str, Any]]:
-        """
-        The 'stats' endpoint does not have any pagination.
-
-        :param response: the most recent response from the API
-        :return If there is another page in the result, a mapping (e.g: dict) containing information needed to query the next page in the response.
-                If there are no more pages in the result, return None.
-        """
-        return None
-    
-    def request_params(
-        self, stream_state: Mapping[str, Any], stream_slice: Mapping[str, any] = None, next_page_token: Mapping[str, Any] = None
-    ) -> MutableMapping[str, Any]:
-        """
-        The query params for the 'stat' endpoint are used to request stats for different resources/types. For more
-        information check out the Stackadapt docs: https://docs.stackadapt.com/#!/stats/getStats
-
-        Currently, only 'buyer_account' stats that are grouped by campaign, line item, or native ad are supported.
-        """
-        stats_query_params = {
-            "resource": self.ACCOUNT_RESOURCE_TYPE,
-            "type": self.stat_type,
-            "group_by_resource": self.GROUP_BY_RESOURCE
-        }
-        # Only add optional params if provided
-        if self.start_date:
-            stats_query_params["start_date"] = self.start_date
-            stats_query_params["end_date"] = self.STATS_END_DATE
-
-        return stats_query_params
-    
-    def path(
-        self,
-        stream_state: Mapping[str, Any] = None,
-        stream_slice: Mapping[str, Any] = None,
-        next_page_token: Mapping[str, Any] = None
-    ) -> str:
-        return "stats"
-
-    def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
-        """
-        Depending on the stat 'type', the response objects will be under a different key.
-        Time based stat types will have results under the 'daily_stats' key and
-        total stat type will have results in the 'individual_total_stats' key.
-
-        :param response: the response object from the most recent API call
-        :return an iterable containing each record in the response
-        """
-
-        stats_response = response.json()
-        if stats_response.get(self.TOTAL_STATS_KEY):
-            yield from stats_response.get(self.TOTAL_STATS_KEY)
-        yield from stats_response.get(self.TIME_BASED_STATS_KEY, [])
 
 
 class Campaigns(StackadaptStream):
@@ -213,6 +136,8 @@ class Advertisers(StackadaptStream):
     primary_key = "id"
     page_size = 30
     total_results_count_field = "total_advertisers"
+    # Use cache so that Stats streams can use cached stream data instead of making another API call
+    use_cache = True
 
     def path(
         self,
@@ -260,81 +185,105 @@ class NativeAds(StackadaptStream):
     ) -> str:
         return "native_ads"
 
-
-# Basic incremental stream
-class IncrementalStackadaptStatStream(StackadaptStream):
+class DeliveryStatStream(StackadaptStream):
     """
-    Base Incremental Stackadapt stream
+    Base Stream for streams that use the 'delivery' stats StackAdapt endpoint. This endpoint behaves different than other GET endpoints
+    and has a seperate class for unique logic. The 'delivery' endpoint works by taking in a number of query parameters to retrieve
+    statistics. The response object of the endpoint varies by the given parameters. For more information please refer to the 
+    StackAdapt Docs - https://docs.stackadapt.com/#!/Stats/getDeliveryStats
+
+    NOTE: Currently this stream only supports getting delivery stats at the 'Advertiser' level with additional granularity with the 'group_by_resource' argument.
+    It will use the Advertisers stream to get stats for all advertiser IDs retrieved from the Advertiser stream. Substreams of this base stream can change the granularity
+    by specifying the 'group_by_resource', 'date_range_type', and 'type' parameters.
     """
     # Constants
     DEFAULT_DATE_FORMAT = "%Y-%m-%d"
-    TIME_BASED_STATS_KEY = "daily_stats"
-    ACCOUNT_RESOURCE_TYPE = "buyer_account"  # Default to grab stats for entire account
-    GROUP_BY_RESOURCE = ""                   # Resource to group by. One of: campaign, line_item, native_ad
-    STAT_TYPE = "daily"                      # For now only daily stats is available
-    STATS_END_DATE = datetime.utcnow().date() - timedelta(days=1)  # Only gets stats up until previous day. (Current day stats may be incomplete depending on when sync is ran)
-    
-    cursor_field = "date"
 
     def __init__(self, start_date: str, **kwargs):
         super().__init__(**kwargs)
+        self.advertisers_stream = Advertisers(**kwargs)
         self.start_date = datetime.strptime(start_date, self.DEFAULT_DATE_FORMAT)
-        self._cursor_value = None
-
-    def get_updated_state(self, current_stream_state: MutableMapping[str, Any], latest_record: Mapping[str, Any]) -> Mapping[str, Any]:
+        self.end_date = datetime.utcnow() - timedelta(days=1)  # Only gets stats up until previous day. (Current day stats may be incomplete depending on when sync is ran)
+    
+    @property
+    def resource_type(self):
         """
-        Compares the date of the current record with the date saved on the stream state. 
-        If the date on the record is greater than the state, then update state. (Note: this seems to be called after each stream slice)
+        Override to change the top level resource type for delivery stats.
         """
-        # Get date from the stream state if it exists. If it doesnt exists, that means this stream hasnt saved a state yet and 
-        # we should use the input 'start_date' for stream state
-        current_stream_state = current_stream_state or {}
-        current_state_date = self.start_date
-        if current_stream_state.get(self.cursor_field):
-            current_state_date = datetime.strptime(current_stream_state[self.cursor_field], self.DEFAULT_DATE_FORMAT)
-
-        # Compare the date on the current record and if it is greater than the date on the current stream state,
-        # update the stream state date with current record date
-        current_stream_state[self.cursor_field] = max(
-            datetime.strptime(latest_record[self.cursor_field], self.DEFAULT_DATE_FORMAT),
-            current_state_date
-        ).strftime(self.DEFAULT_DATE_FORMAT)
-
-        return current_stream_state
-
-    def stream_slices(self, sync_mode, cursor_field: List[str] = None, stream_state: Mapping[str, Any] = None) -> Iterable[Optional[Mapping[str, Any]]]:
+        return "advertiser"
+    
+    @property
+    def group_by_resource(self):
         """
-        Returns a slice for the date range that data should be pulled. This currently will pull the date from the stream state
-        to use as the start date for the slice. End date for the slice will be 'STATS_END_DATE': the day before the sync is ran.
-        The thinking behind this is that we should pull daily stats for the current date since they may be incomplete depending on when sync is running.
-
-        This also means that each sync run will result in a single slice and API request. We can modify this to a different strategy,
-        but this started running into issues when trying to do daily slices (1 API request per day) for initial load.
-        """
-        slices = []
-        stream_state = stream_state or {}
-
-        # Check to see if there is an existing stream state we should pick up from
-        # if not just pull data from 'start_date'
-        slice_start_date = self.start_date
-        if stream_state.get(self.cursor_field):
-            slice_start_date = (
-                datetime.strptime(stream_state[self.cursor_field], self.DEFAULT_DATE_FORMAT) + timedelta(days=1)
-            )
+        Override to specify what resource type to group by. This will lower the granularity
+        that stats are returned by (Line Item, Campaign, or Native Ad level)
         
-        # To reduce number of requests we are making, only create a single slice with data we have not yet pulled.
-        # Basically, pull data from the date in stream state or from 'start_date' if no stream state (hasnt ran yet)
-        if slice_start_date.date() <= self.STATS_END_DATE:
-            slices.append({
-                "start_date": datetime.strftime(slice_start_date, self.DEFAULT_DATE_FORMAT),
-                "end_date": datetime.strftime(self.STATS_END_DATE, self.DEFAULT_DATE_FORMAT)
-            })
-        logger.info(f"Request Stream Slices: {slices}")
-        return slices
+        Must be one of: 'line_item', 'campaign', 'native_ad'
+        """
+        return None
+
+    @property
+    def stat_type(self):
+        """
+        Override to specify the 'type' of stats you would like to request. This is to specify
+        if you want stats split by daily, hourly, or aggregated total interval.
+
+        Must be one of: 'total', 'daily', 'hourly'
+        """
+        return "total"
+    
+    @property
+    def date_range_type(self):
+        """
+        Override to specify the date range type stats should be returned in. This can either be 
+        'all_time' - returns stats for given resource that are available for all time
+        'custom' - Used to specify that you will pass in a custom date range stats should be returned
+                   for. This requires 'start_date' and 'end_date params' to be passed in. 
+        
+        NOTE: All stats streams will use the 'custom' date_range_type since they are incremental streams
+              that will pull data daily. 
+        """
+        return "all_time"
+
+    def _get_stats_key(self):
+        """
+        Returns the key in which stats can be found in API response object if stat_type is 'total'.
+        If stats type is something other than 'total', then stats will be found directly in the
+        top level 'stats' object.
+        """
+        # If stat type is total, stats will be returned under different keys
+        if self.stat_type == "total":
+            # If custom date range is given, stats will be returned for every day in given range under 'daily_stats'
+            if self.date_range_type == "custom":
+                return "daily_stats"
+            elif self.group_by_resource:
+                return "individual_total_stats"
+            else:
+                return "total_stats"
+        return None
+
+    def stream_slices(
+        self, sync_mode: SyncMode, cursor_field: List[str] = None, stream_state: Mapping[str, Any] = None
+    ) -> Iterable[Optional[Mapping[str, Any]]]:
+        """
+        Create Stream Slices for each Advertiser ID.
+        """
+        for record in self.advertisers_stream.read_records(sync_mode=SyncMode.full_refresh):
+            logger.info(f"Slice forAdvertiser ID: {record['id']}")
+            yield {
+                "advertiser_id": record["id"],
+                "start_date": self.start_date.strftime(self.DEFAULT_DATE_FORMAT),
+                "end_date": self.end_date.strftime(self.DEFAULT_DATE_FORMAT)
+            }
+
 
     def next_page_token(self, response: requests.Response) -> Optional[Mapping[str, Any]]:
         """
-        The 'stats' endpoint does not have any pagination.
+        The 'delivery' endpoint does not have any pagination.
+
+        :param response: the most recent response from the API
+        :return If there is another page in the result, a mapping (e.g: dict) containing information needed to query the next page in the response.
+                If there are no more pages in the result, return None.
         """
         return None
     
@@ -342,19 +291,26 @@ class IncrementalStackadaptStatStream(StackadaptStream):
         self, stream_state: Mapping[str, Any], stream_slice: Mapping[str, any] = None, next_page_token: Mapping[str, Any] = None
     ) -> MutableMapping[str, Any]:
         """
-        The query params for the 'stat' endpoint are used to request stats for different resources/types. For more
+        The query params for the 'delivery' endpoint are used to request stats for different resources/types. For more
         information check out the Stackadapt docs: https://docs.stackadapt.com/#!/stats/getStats
 
-        Currently, only 'buyer_account' stats that are grouped by campaign, line item, or native ad are supported.
+        Currently, only 'advertiser' level stats that are grouped by campaign, line item, or native ad are supported.
         """
+        advertiser_id = stream_slice["advertiser_id"]
         stats_query_params = {
-            "resource": self.ACCOUNT_RESOURCE_TYPE,
-            "type": self.STAT_TYPE,
-            "group_by_resource": self.GROUP_BY_RESOURCE,
-            "start_date": stream_slice["start_date"],
-            "end_date": stream_slice["end_date"],
+            "resource_type": self.resource_type,
+            "type": self.stat_type,
+            "id": advertiser_id,
+            "date_range_type": self.date_range_type
         }
-        logger.info(f"Query Params: {stats_query_params}")
+        # Only add optional params if provided
+        if self.date_range_type == "custom":
+            stats_query_params["start_date"] = stream_slice.get("start_date")
+            stats_query_params["end_date"] = stream_slice.get("end_date")
+        if self.group_by_resource:
+            stats_query_params["group_by_resource"] = self.group_by_resource
+
+        logger.info(f"Making Request with the following Query Params: {stats_query_params}")
 
         return stats_query_params
     
@@ -364,32 +320,115 @@ class IncrementalStackadaptStatStream(StackadaptStream):
         stream_slice: Mapping[str, Any] = None,
         next_page_token: Mapping[str, Any] = None
     ) -> str:
-        return "stats"
-    
+        return "delivery"
+
     def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
         """
-        Parses the response object and yields records if there are returned records from source.
-        Note: The API will return 'daily_stat': None if no data was found for given time range.
+        Depending on the stat 'type', the response objects will be under a different key.
+        'daily' and 'hourly' stat types will have results directly in the 'stats' object.
+        'total' stat type will have results in a nested key that depends on other inputs.
+        Note: The API will return 'stats': None if no data was found for given time range.
 
         :param response: the response object from the most recent API call
         :return an iterable containing each record in the response
         """
+
         stats_response = response.json()
+        stats_key = self._get_stats_key()
 
-        # Yield from response only if there is available data
-        daily_stats = stats_response.get(self.TIME_BASED_STATS_KEY)
-        yield from daily_stats if daily_stats else []
+        # If stats type is 'total' stats will be nested in 'stats' object
+        if stats_key:
+            stats = stats_response["stats"].get(stats_key)
+            # Make sure stats is an array before yielding
+            stats = [stats] if not isinstance(stats, list) else stats
+            
+        # If stats type is 'daily' or 'hourly', stats will be a list under 'stats' object
+        else:
+            stats = stats_response["stats"]
+        
+        # Its possible for 'stats' to be None, if it is yield from empty list
+        yield from stats if stats else []
 
-class AccountCampaignsStats(IncrementalStackadaptStatStream):
+
+class IncrementalDeliveryStatStream(DeliveryStatStream, IncrementalMixin):
+    """
+    Base Incremental Stream for the StackAdapt `delivery` endpoint. 
+    This stream incrementally loads stat by saving the latest 'date' seen
+    in a record to state. It will then grab that date from state and only 
+    request records newer than that date.
+    """
+
+    cursor_field = "date"
+
+    def __init__(self, start_date: str, **kwargs):
+        super().__init__(start_date, **kwargs)
+        self._cursor_value = None
+
+    @property
+    def state(self) -> Mapping[str, Any]:
+        if self._cursor_value:
+            return {self.cursor_field: self._cursor_value.strftime(self.DEFAULT_DATE_FORMAT)} 
+        else:
+            return {self.cursor_field: self.start_date.strftime(self.DEFAULT_DATE_FORMAT)}
+
+    @state.setter
+    def state(self, value: Mapping[str, Any]):
+        self._cursor_value = datetime.strptime(value[self.cursor_field], self.DEFAULT_DATE_FORMAT)
+    
+    def stream_slices(
+        self, sync_mode: SyncMode,
+        cursor_field: List[str] = None,
+        stream_state: Mapping[str, Any] = None
+    ) -> Iterable[Optional[Mapping[str, Any]]]:
+        """
+        Override the stream slices method to update start_date from stream state
+        """
+        for record in self.advertisers_stream.read_records(sync_mode=SyncMode.full_refresh):
+            # Figure out start_date based on stream_state
+            slice_start_date = self.start_date
+            # If stream date is not equal to start_date, then it has been incremented and start_date = stream state date
+            if stream_state and self.cursor_field in stream_state:
+                slice_start_date = (
+                    datetime.strptime(stream_state[self.cursor_field], self.DEFAULT_DATE_FORMAT) + timedelta(days=1)
+                )
+            if slice_start_date <= self.end_date:
+                logger.info(f"Slice for Advertiser ID: {record['id']} | Start Date: {slice_start_date} | End Date: {self.end_date}")
+                yield {
+                    "advertiser_id": record["id"],
+                    "start_date": slice_start_date.strftime(self.DEFAULT_DATE_FORMAT),
+                    "end_date": self.end_date.strftime(self.DEFAULT_DATE_FORMAT)
+                }
+    
+    def read_records(
+        self,
+        sync_mode: SyncMode,
+        cursor_field: List[str] = None,
+        stream_slice: Mapping[str, Any] = None,
+        stream_state: Mapping[str, Any] = None,
+    ) -> Iterable[Mapping[str, Any]]:
+        for record in super().read_records(
+            sync_mode=sync_mode, cursor_field=cursor_field, stream_slice=stream_slice, stream_state=stream_state
+        ):
+            yield record
+            # Update State with latest date 
+            record_date = datetime.strptime(record[self.cursor_field], self.DEFAULT_DATE_FORMAT)
+            stream_state_date = self._cursor_value if self._cursor_value else self.start_date
+            self._cursor_value = max(stream_state_date, record_date)
+    
+
+class AccountCampaignsStats(IncrementalDeliveryStatStream):
     """
     Returns stats on all the campaigns a user has access to.
     Stats can be either 'total' stats per campaign, or 'daily' stats for each campaign.
     """
     # Constants
-    primary_key = "campaign_id"
-    GROUP_BY_RESOURCE = "campaign"
+    group_by_resource = "campaign"
+    stat_type = "daily"
+    date_range_type = "custom"
+    primary_key = None
 
-class AccountLineItemsStats(IncrementalStackadaptStatStream):
+
+class AccountLineItemsStats(IncrementalDeliveryStatStream):
     """
     Returns stats on all the line items a user has access to.
     Stats can be either 'total' stats per line item, or 'daily' stats for each line item.
@@ -397,15 +436,19 @@ class AccountLineItemsStats(IncrementalStackadaptStatStream):
     Note: the response schema for this stream does not contain the line_item_id, it only contains name
     """
     # Constants
-    primary_key = "line_item"
-    GROUP_BY_RESOURCE = "line_item"
+    group_by_resource = "line_item"
+    stat_type = "daily"
+    date_range_type = "custom"
+    primary_key = None
 
 
-class AccountNativeAdsStats(IncrementalStackadaptStatStream):
+class AccountNativeAdsStats(IncrementalDeliveryStatStream):
     """
     Returns stats on all the native ads a user has access to.
     Stats can be either 'total' stats per native ad, or 'daily' stats for each native ad.
     """
     # Constants
-    primary_key = "native_ad_id"
-    GROUP_BY_RESOURCE = "native_ad"
+    group_by_resource = "native_ad"
+    stat_type = "daily"
+    date_range_type = "custom"
+    primary_key = None
