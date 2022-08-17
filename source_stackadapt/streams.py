@@ -391,13 +391,13 @@ class IncrementalDeliveryStatStream(DeliveryStatStream, IncrementalMixin):
                 slice_start_date = (
                     datetime.strptime(stream_state[self.cursor_field], self.DEFAULT_DATE_FORMAT) + timedelta(days=1)
                 )
-            
-            logger.info(f"Slice for Advertiser ID: {record['id']} | Start Date: {slice_start_date} | End Date: {self.end_date}")
-            yield {
-                "advertiser_id": record["id"],
-                "start_date": slice_start_date.strftime(self.DEFAULT_DATE_FORMAT),
-                "end_date": self.end_date.strftime(self.DEFAULT_DATE_FORMAT)
-            }
+            if slice_start_date <= self.end_date:
+                logger.info(f"Slice for Advertiser ID: {record['id']} | Start Date: {slice_start_date} | End Date: {self.end_date}")
+                yield {
+                    "advertiser_id": record["id"],
+                    "start_date": slice_start_date.strftime(self.DEFAULT_DATE_FORMAT),
+                    "end_date": self.end_date.strftime(self.DEFAULT_DATE_FORMAT)
+                }
     
     def read_records(
         self,
