@@ -80,9 +80,9 @@ class SourceStackadapt(AbstractSource):
         """
         streams = []
 
-        streams.append(AirbyteStream(name="account_campaigns_stats", json_schema=account_campaigns_stats_schema, supported_sync_modes=["full_refresh"]))
-        streams.append(AirbyteStream(name="account_line_items_stats", json_schema=account_line_items_stats_schema, supported_sync_modes=["full_refresh"]))
-        streams.append(AirbyteStream(name="account_native_ads_stats", json_schema=account_native_ads_stats_schema, supported_sync_modes=["full_refresh"]))
+        streams.append(AirbyteStream(name="account_campaigns_stats", json_schema=account_campaigns_stats_schema, supported_sync_modes=["full_refresh","incremental"]))
+        streams.append(AirbyteStream(name="account_line_items_stats", json_schema=account_line_items_stats_schema, supported_sync_modes=["full_refresh","incremental"]))
+        streams.append(AirbyteStream(name="account_native_ads_stats", json_schema=account_native_ads_stats_schema, supported_sync_modes=["full_refresh","incremental"]))
         streams.append(AirbyteStream(name="advertisers", json_schema=advertisers_schema, supported_sync_modes=["full_refresh"]))
         streams.append(AirbyteStream(name="campaigns", json_schema=campaigns_schema, supported_sync_modes=["full_refresh"]))
         streams.append(AirbyteStream(name="conversion_trackers", json_schema=conversion_trackers_schema, supported_sync_modes=["full_refresh"]))
