@@ -1,11 +1,9 @@
-name: build_and_publish_image
+name: Build image (Prod)
+
 on:
   push:
     branches:
-      - master
-    tags:
-      - v*
-  pull_request:
+      - main
 
 jobs:
   publish-source-stackadapt-image:
@@ -27,8 +25,8 @@ jobs:
       
     - name: Build and tag image
       run: |
-        docker build . -t communitytechalliance/source-stackadapt:latest
+        docker build . -t communitytechalliance/source-stackadapt:dev
 
-    - name: Push image to Docker Hub #todo: only on merge to main
+    - name: Push image to Docker Hub
       run: |
-        docker push communitytechalliance/source-stackadapt:latest
+        docker push communitytechalliance/source-stackadapt:dev
