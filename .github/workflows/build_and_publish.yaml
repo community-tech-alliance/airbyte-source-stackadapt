@@ -27,10 +27,8 @@ jobs:
       
     - name: Build and tag image
       run: |
-        COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
-        docker build . -t communitytechalliance/source-stackadapt:$COMMIT_SHA -t communitytechalliance/source-stackadapt:latest
+        docker build . -t communitytechalliance/source-stackadapt:latest
 
-    - name: Push image to Docker Hub
+    - name: Push image to Docker Hub #todo: only on merge to main
       run: |
-        docker push communitytechalliance/source-stackadapt:$COMMIT_SHA
         docker push communitytechalliance/source-stackadapt:latest
