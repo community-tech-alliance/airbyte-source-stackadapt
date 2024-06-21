@@ -15,18 +15,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Docker Metadata
-      id: meta
-      uses: docker/metadata-action@v4
-      with:
-        images: |
-          ghcr.io/community-tech-alliance/source-stackadapt
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=sha
-
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2
 
@@ -40,15 +28,9 @@ jobs:
     - name: Build and tag image
       run: |
         COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
-        docker build . -t communitytechalliance/${{ github.repository }}:$COMMIT_SHA
+        docker build . -t communitytechalliance/source-stackadapt:$COMMIT_SHA -t communitytechalliance/source-stackadapt:latest
 
     - name: Push image to Docker Hub
-      run: docker push communitytechalliance/${{ github.repository }}:$COMMIT_SHA
-
-    - name: Build and push
-      uses: docker/build-push-action@v3
-      with:
-        context: .
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
+      run: |
+        docker push communitytechalliance/source-stackadapt:$COMMIT_SHA
+        docker push communitytechalliance/source-stackadapt:latest
