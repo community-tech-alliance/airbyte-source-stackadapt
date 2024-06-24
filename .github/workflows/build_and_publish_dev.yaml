@@ -2,14 +2,14 @@ name: Build image (Dev)
 
 on:
   pull_request:
-    branches:
-      - main
+    types: [labeled, opened, synchronize, reopened]
 
 jobs:
   publish-source-stackadapt-image:
+    if: ${{ contains(github.event.pull_request.labels.*.name,'dev_deploy') }}
     runs-on: ubuntu-latest
     environment:
-      prod
+      dev
     steps:
     - uses: actions/checkout@v3
 
