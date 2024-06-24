@@ -8,15 +8,15 @@
     "additionalProperties": false,
     "properties": {
       "api_key": {
-        "title": "StackAdapt API Key",
-        "description": "API Key used to interact with the StackAdapt API",
+        "title": "StackAdapt API Key (if entered incorrectly, a demon will be summoned)",
+        "description": "I am pushing a change to see if Airbyte re-pulls the image successfully (it would be really cool if it did)",
         "type": "string",
         "airbyte_secret": "true",
         "order": 1
       },
       "start_date": {
         "title": "Start Date",
-        "description": "The start date in the format of 'yyyy-mm-dd'. The start date is required if you are pulling daily stats.",
+        "description": "Use your intuition",
         "type": "string",
         "order": 2
       }
