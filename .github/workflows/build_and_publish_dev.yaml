@@ -9,7 +9,7 @@ jobs:
     if: ${{ contains(github.event.pull_request.labels.*.name,'dev_deploy') }}
     runs-on: ubuntu-latest
     environment:
-      dev
+      prod
     steps:
     - uses: actions/checkout@v3
 
