@@ -26,3 +26,7 @@ jobs:
     - name: Build and tag image
       run: |
         docker build . -t communitytechalliance/source-stackadapt:dev
+
+    - name: Push image to Docker Hub
+      run: |
+        docker push communitytechalliance/source-stackadapt:dev
