@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ contains(github.event.pull_request.labels.*.name,'dev_deploy') }}
     environment:
-      prod
+      prod    #the dockerhub key is the same, update this if new secrets diverge 
     steps:
     - uses: actions/checkout@v3
 
@@ -26,4 +26,9 @@ jobs:
       
     - name: Build and tag image
       run: |
-        docker build . -t communitytechalliance/source-stackadapt:dev
+        COMMIT_HASH=$(echo ${{ github.sha }} | cut -c1-6)
+        docker build . -t communitytechalliance/source-stackadapt:$COMMIT_HASH
+    
+    - name: Push image to Docker Hub
+      run: |
+        docker push communitytechalliance/source-stackadapt:$COMMIT_HASH
